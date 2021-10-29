@@ -24,3 +24,16 @@ def test_zygosity():
     assert parse_functions.zygosity("1,0,0") == "het,-,-"
     assert parse_functions.zygosity("2,1,0") == "hom,het,-"
     assert parse_functions.zygosity("2,1,-1") == "hom,het,missing"
+
+def test_alt_depth():
+    #DP="84,72,69"
+	#AB="0.238095,0,0.246377"
+    assert parse_functions.alt_depth("84,72,69", "0.238095,0,0.246377") == [19.99998, 0.0, 17.000013]
+    assert parse_functions.alt_depth("44,29,42", "0.477273,0,0.619048") == [21.000012, 0.0, 26.000016000000002]
+
+def test_gnomad_link():
+    assert parse_functions.gnomad_link("1:1581136:G:A") == "=HYPERLINK(\"http://gnomad.broadinstitute.org/variant/1-1581136-G-A\",\"GNOMAD_link\")"
+
+def test_ucsc_link():
+    assert parse_functions.ucsc_link("1:1581136:G:A") == '=HYPERLINK("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hgt.out3=10x&position=1:1581136","UCSC_link")'
+
