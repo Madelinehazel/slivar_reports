@@ -1,8 +1,0 @@
-README.md
-setup.py
-parse_report/__init__.py
-parse_report/parse_functions.py
-parse_report.egg-info/PKG-INFO
-parse_report.egg-info/SOURCES.txt
-parse_report.egg-info/dependency_links.txt
-parse_report.egg-info/top_level.txt
