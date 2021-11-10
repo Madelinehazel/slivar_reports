@@ -37,3 +37,10 @@ def test_gnomad_link():
 def test_ucsc_link():
     assert parse_functions.ucsc_link("1:1581136:G:A") == '=HYPERLINK("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hgt.out3=10x&position=1:1581136","UCSC_link")'
 
+def test_add_c4r_exome_db():
+    import pandas as pd
+    test_record = pd.DataFrame.from_dict({"chr:pos:ref:alt": ["1:12854401:G:T"]})
+    truth_record = pd.DataFrame.from_dict({"chr:pos:ref:alt": ["1:12854401:G:T"], "Frequency_in_C4R":[3], "Seen_in_C4R_samples": ["207_120901A; 1469_CH0945; 1469_CH0950"]})
+    assert parse_functions.add_c4r_exome_db(test_record).equals(truth_record)
+    
+
