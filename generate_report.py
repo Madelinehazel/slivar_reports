@@ -22,6 +22,7 @@ def main(report):
     report = report.rename({'gene_description_1': 'pLI_score'}, axis=1)
     report = report.rename({'gene_description_2': 'gene_description'}, axis=1)
     report = report.rename({'gene_impact_transcript_Gene_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT': 'Info'}, axis=1)
+    report = parse_functions.add_c4r_exome_db(report)
     report.to_csv("test.txt", index=False, sep="\t", quotechar="'", escapechar="\'", doublequote=False)
     report.to_csv("test.csv", index=False, sep=",", quotechar="'", escapechar="\'", doublequote=False)
 
