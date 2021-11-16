@@ -37,3 +37,8 @@ def test_gnomad_link():
 def test_ucsc_link():
     assert parse_functions.ucsc_link("1:1581136:G:A") == '=HYPERLINK("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hgt.out3=10x&position=1:1581136","UCSC_link")'
 
+def test_replacedelim():
+    assert parse_functions.replace_comma("1,1,0") == '1/1/0'
+    assert parse_functions.replace_comma("1,1,2") == '1/1/2'
+    assert parse_functions.replace_comma("0.298,0.265,0.298") == '0.298/0.265/0.298'
+    assert parse_functions.replace_comma("0.298,0.265,NA") == '0.298/0.265/NA'
