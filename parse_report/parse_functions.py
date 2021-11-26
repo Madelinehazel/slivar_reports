@@ -259,7 +259,16 @@ def add_hgmd(report):
 
 
 # frequency_in_C4R, seen_in_C4R_samples
-
+def add_c4r_exome_db(report):
+    c4r_counts_file = "/hpf/largeprojects/ccm_dccforge/dccforge/results/database/seen_in_c4r_counts.txt"
+    c4r_sample_file = "/hpf/largeprojects/ccm_dccforge/dccforge/results/database/seen_in_c4r_samples.txt"
+    c4r_counts = pd.read_csv(c4r_counts_file, sep="\t", header=0, names=["chr:pos:ref:alt", "Frequency_in_C4R"], skiprows=0)
+    c4r_sample = pd.read_csv(c4r_sample_file, sep="\t", header=0, names=["chr:pos:ref:alt", "Seen_in_C4R_samples"], skiprows=0)
+    c4r_counts['chr:pos:ref:alt'] = c4r_counts["chr:pos:ref:alt"].str.replace("-",":")
+    c4r_sample['chr:pos:ref:alt'] = c4r_sample["chr:pos:ref:alt"].str.replace("-",":")
+    report = pd.merge(report, c4r_counts, on="chr:pos:ref:alt", how="left")
+    report = pd.merge(report, c4r_sample, on="chr:pos:ref:alt", how="left")
+    return report
 
 ### FIX FORMATING IN THE REPORT
     

@@ -21,6 +21,7 @@ def main(report):
     report = parse_functions.gnomad_replace(report)
     report = parse_functions.vest3_score(report)
     report = parse_functions.add_hgmd(report)
+    report = parse_functions.add_c4r_exome_db(report)
     report = report.rename({'gene_impact_transcript_Gene_CANONICAL_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT_DOMAINS': 'Info'}, axis=1)
     report = report.rename({'depths(sample,dad,mom)': 'trio_coverage(sample,dad,mom)'}, axis=1)
     report = report.rename({'clinvar_pathogenic': 'Clinvar'}, axis=1)
@@ -32,6 +33,8 @@ def main(report):
     report['Cadd_score'] = report['Cadd_score'].fillna('None')
     report['Revel_score'] = report['Revel_score'].fillna('None')
     report['Gerp_score'] = report['Gerp_score'].fillna('None')
+    report['Frequency_in_C4R'] = report['Frequency_in_C4R'].fillna('0')
+    report['Seen_in_C4R_samples'] = report['Seen_in_C4R_samples'].fillna('0')
     report['UCE_100bp'] = report['UCE_100bp'].fillna('0')
     report['UCE_100bp'] = report['UCE_100bp'].replace('UCE_100bp', '1')
     report['UCE_200bp'] = report['UCE_200bp'].fillna('0')
@@ -43,19 +46,14 @@ def main(report):
     # gnomad_nhomalt uses gnomadv2.1.1, it's the updated value of gnomad_hom
     # Burden(sample,dad,mom)
     # add Ensembl_transcript_id, aa_position, exon, protein_domain etc
-    # Frequency_in_C4R; Seen_in_C4R_samples (sampleid)
     # Number_of_callers; Old-multiallelic
     report = report[['#mode', 'family_id', 'sample_id', 'chr:pos:ref:alt', 'UCSC_link', 'GNOMAD_link', 'zygosity(sample,dad,mom)', 'Gene', 'genotype(sample,dad,mom)', 'highest_impact', 'Info', 'DP', 'QUAL',
      'alt_depth(sample,dad,mom)', 'trio_coverage(sample,dad,mom)', 'allele_balance(sample,dad,mom)', 'Ensembl_gene_id', 'Gene_description', 'omim_phenotype', 'omim_inheritance', 'Orphanet', 'Clinvar', 
-     'HGMD_id', 'HGMD_gene', 'HGMD_tag', 'HGMD_ref', 'gnomad_af_popmax', 'gnomad_af', 'gnomad_ac', 'gnomad_hom', 'gnomad_hom(v2.1.1)', 'rs_ids', 
+     'Frequency_in_C4R', 'Seen_in_C4R_samples', 'HGMD_id', 'HGMD_gene', 'HGMD_tag', 'HGMD_ref', 'gnomad_af_popmax', 'gnomad_af', 'gnomad_ac', 'gnomad_hom', 'gnomad_hom(v2.1.1)', 'rs_ids', 
      'Gnomad_oe_lof_score', 'Gnomad_oe_mis_score', 'Exac_pli_score', 'Exac_prec_score', 'Exac_pnull_score', 'Conserved_in_20_mammals', 'spliceAI_impact', 'spliceAI_score', 
      'Cadd_score', 'Vest3_score', 'Revel_score', 'Gerp_score', 'Imprinting_status', 'Imprinting_expressed_allele', 'Pseudoautosomal', 'UCE_100bp', 'UCE_200bp']]
     
 
-    report = report.drop(columns=["spliceAI_parsed", "spliceai_score", "PAR_Gene_name"])
-    report = report.rename({'gene_description_1': 'pLI_score'}, axis=1)
-    report = report.rename({'gene_description_2': 'gene_description'}, axis=1)
-    report = report.rename({'gene_impact_transcript_Gene_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT': 'Info'}, axis=1)
     report.to_csv("test.txt", index=False, sep="\t", quotechar="'", escapechar="\'", doublequote=False)
     report.to_csv("test.csv", index=False, sep=",")
 
