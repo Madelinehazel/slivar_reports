@@ -52,6 +52,10 @@ def main(report):
      'Cadd_score', 'Vest3_score', 'Revel_score', 'Gerp_score', 'Imprinting_status', 'Imprinting_expressed_allele', 'Pseudoautosomal', 'UCE_100bp', 'UCE_200bp']]
     
 
+    report = report.drop(columns=["spliceAI_parsed", "spliceai_score", "PAR_Gene_name"])
+    report = report.rename({'gene_description_1': 'pLI_score'}, axis=1)
+    report = report.rename({'gene_description_2': 'gene_description'}, axis=1)
+    report = report.rename({'gene_impact_transcript_Gene_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT': 'Info'}, axis=1)
     report.to_csv("test.txt", index=False, sep="\t", quotechar="'", escapechar="\'", doublequote=False)
     report.to_csv("test.csv", index=False, sep=",")
 
