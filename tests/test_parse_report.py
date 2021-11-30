@@ -25,28 +25,52 @@ def test_zygosity():
     assert parse_functions.zygosity("2,1,0") == "hom,het,-"
     assert parse_functions.zygosity("2,1,-1") == "hom,het,missing"
 
+
 def test_alt_depth():
-    #DP="84,72,69"
-	#AB="0.238095,0,0.246377"
-    assert parse_functions.alt_depth("84,72,69", "0.238095,0,0.246377") == [19.99998, 0.0, 17.000013]
-    assert parse_functions.alt_depth("44,29,42", "0.477273,0,0.619048") == [21.000012, 0.0, 26.000016000000002]
+    # DP="84,72,69"
+    # AB="0.238095,0,0.246377"
+    assert parse_functions.alt_depth("84,72,69", "0.238095,0,0.246377") == [
+        19.99998,
+        0.0,
+        17.000013,
+    ]
+    assert parse_functions.alt_depth("44,29,42", "0.477273,0,0.619048") == [
+        21.000012,
+        0.0,
+        26.000016000000002,
+    ]
+
 
 def test_gnomad_link():
-    assert parse_functions.gnomad_link("1:1581136:G:A") == "=HYPERLINK(\"http://gnomad.broadinstitute.org/variant/1-1581136-G-A\",\"GNOMAD_link\")"
+    assert (
+        parse_functions.gnomad_link("1:1581136:G:A")
+        == '=HYPERLINK("http://gnomad.broadinstitute.org/variant/1-1581136-G-A","GNOMAD_link")'
+    )
+
 
 def test_ucsc_link():
-    assert parse_functions.ucsc_link("1:1581136:G:A") == '=HYPERLINK("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hgt.out3=10x&position=1:1581136","UCSC_link")'
+    assert (
+        parse_functions.ucsc_link("1:1581136:G:A")
+        == '=HYPERLINK("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hgt.out3=10x&position=1:1581136","UCSC_link")'
+    )
+
 
 def test_replacedelim():
-    assert parse_functions.replace_comma("1,1,0") == '1/1/0'
-    assert parse_functions.replace_comma("1,1,2") == '1/1/2'
-    assert parse_functions.replace_comma("0.298,0.265,0.298") == '0.298/0.265/0.298'
-    assert parse_functions.replace_comma("0.298,0.265,NA") == '0.298/0.265/NA'
+    assert parse_functions.replace_comma("1,1,0") == "1/1/0"
+    assert parse_functions.replace_comma("1,1,2") == "1/1/2"
+    assert parse_functions.replace_comma("0.298,0.265,0.298") == "0.298/0.265/0.298"
+    assert parse_functions.replace_comma("0.298,0.265,NA") == "0.298/0.265/NA"
+
 
 def test_add_c4r_exome_db():
     import pandas as pd
-    test_record = pd.DataFrame.from_dict({"chr:pos:ref:alt": ["1:12854401:G:T"]})
-    truth_record = pd.DataFrame.from_dict({"chr:pos:ref:alt": ["1:12854401:G:T"], "Frequency_in_C4R":[3], "Seen_in_C4R_samples": ["207_120901A; 1469_CH0945; 1469_CH0950"]})
-    assert parse_functions.add_c4r_exome_db(test_record).equals(truth_record)
-    
 
+    test_record = pd.DataFrame.from_dict({"chr:pos:ref:alt": ["1:12854401:G:T"]})
+    truth_record = pd.DataFrame.from_dict(
+        {
+            "chr:pos:ref:alt": ["1:12854401:G:T"],
+            "Frequency_in_C4R": [3],
+            "Seen_in_C4R_samples": ["207_120901A; 1469_CH0945; 1469_CH0950"],
+        }
+    )
+    assert parse_functions.add_c4r_exome_db(test_record).equals(truth_record)
