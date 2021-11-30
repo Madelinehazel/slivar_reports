@@ -219,8 +219,7 @@ def add_gene_description(report):
 
 # orphanet
 orphanet_file = os.path.join(default_tables_path, "orphanet.txt")
-cols = pd.read_csv(orphanet_file, sep="\t").columns
-orphanet = pd.read_csv(orphanet_file, sep="\t", usecols=cols[0:2])
+orphanet = pd.read_csv(orphanet_file, sep="\t", encoding="latin1")
 
 
 def add_orphanet(report):
