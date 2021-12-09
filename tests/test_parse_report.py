@@ -1,6 +1,5 @@
 import pytest
 from parse_report import parse_functions
-from slivar_reports.parse_report.parse_functions import parse_info
 
 
 def test_parse_spliceAI():
@@ -30,16 +29,8 @@ def test_zygosity():
 def test_alt_depth():
     # DP="84,72,69"
     # AB="0.238095,0,0.246377"
-    assert parse_functions.alt_depth("84,72,69", "0.238095,0,0.246377") == [
-        19.99998,
-        0.0,
-        17.000013,
-    ]
-    assert parse_functions.alt_depth("44,29,42", "0.477273,0,0.619048") == [
-        21.000012,
-        0.0,
-        26.000016000000002,
-    ]
+    assert parse_functions.alt_depth("84,72,69", "0.238095,0,0.246377") == '19,0,17'
+    assert parse_functions.alt_depth("44,29,42", "0.477273,0,0.619048") == '21,0,26'
 
 
 def test_gnomad_link():
@@ -74,13 +65,14 @@ cano_refseq = 'MORN1/missense_variant/ENST00000378529/ENSG00000116151//9/11/ENST
 refseq = 'ELMO1/5_prime_UTR_variant/ENST00000310758/ENSG00000155849/YES/1/22/ENST00000310758.4:c.-256_-253dup///5_prime_UTR_variant///;ELMO1/5_prime_UTR_variant/ENST00000445322/ENSG00000155849//1/5/ENST00000445322.1:c.-352_-349dup///5_prime_UTR_variant///;ELMO1/splice_region_variant&intron_variant/ENST00000448602/ENSG00000155849///ENST00000448602.1:c.-74+3_-74+6dup///splice_region_variant&intron_variant///;ELMO1/splice_region_variant&intron_variant/ENST00000453399/ENSG00000155849///ENST00000453399.1:c.-170+3_-170+6dup///splice_region_variant&intron_variant///;ELMO1/non_coding_transcript_exon_variant/ENST00000463390/ENSG00000155849//1/5/ENST00000463390.1:n.3_4insAAGT///non_coding_transcript_exon_variant///;ELMO1/splice_region_variant&intron_variant&non_coding_transcript_variant/ENST00000479447/ENSG00000155849///ENST00000479447.1:n.91+3_91+6dup///splice_region_variant&intron_variant&non_coding_transcript_variant///;ELMO1/splice_region_variant&intron_variant/NM_001206480.2/9844///NM_001206480.2:c.-74+3_-74+6dup///splice_region_variant&intron_variant///;ELMO1/5_prime_UTR_variant/NM_014800.11/9844//1/22/NM_014800.11:c.-256_-253dup///5_prime_UTR_variant///;/regulatory_region_variant/ENSR00000211027///////regulatory_region_variant///;/regulatory_region_variant/ENSR00001393429///////regulatory_region_variant///'
 norefseq = 'ARAP2/splice_region_variant&intron_variant&non_coding_transcript_variant/ENST00000503225/ENSG00000047365///ENST00000503225.1:n.1470-8del///splice_region_variant&intron_variant&non_coding_transcript_variant///'
 
-def test_parse_info():
+def test_parse_inf():
+    # result = [refseq_HGVC, HGVCp, exon, protein, canonical, protein_domain, polyphen, sift]
     assert(
-        parse_functions.parse_info(cano_refseq) == ['NM_024848.3:c.790G>A', 'NP_079124.1:p.Val264Met', 'missense_variant', '9_14', '264_497', 'Yes', '', 'probably_damaging(0.939)', 'deleterious(0.02)']
+        parse_functions.parse_inf(cano_refseq) == ['NM_024848.3:c.790G>A', 'NP_079124.1:p.Val264Met', '9_14', '264_497', 'Yes', '', 'probably_damaging(0.939)', 'deleterious(0.02)']
     )
     assert(
-        parse_functions.parse_info(refseq) == ['NM_001206480.2:c.-74+3_-74+6dup', '', 'splice_region_variant&intron_variant', '', 'NA', 'No', '', '', '']
+        parse_functions.parse_inf(refseq) == ['NM_001206480.2:c.-74+3_-74+6dup', '', '', 'NA', 'No', '', '', '']
     )
     assert(
-        parse_functions.parse_info(norefseq) == ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
+        parse_functions.parse_inf(norefseq) == ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
     )

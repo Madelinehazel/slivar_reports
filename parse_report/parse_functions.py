@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import os
 import re
 
@@ -112,24 +111,27 @@ def add_omim(report):
 
 
 def alt_depth(DP, AB):
-    DP = DP.str.split(pat=",")
-    DP = np.asarray(DP.tolist(), dtype="float32")
-    AB = AB.str.split(pat=",")
-    AB = np.asarray(AB.tolist(), dtype="float32")
-    AD = np.array([DP[:, 0] * AB[:, 0], DP[:, 1] * AB[:, 1], DP[:, 2] * AB[:, 2]])
-    AD = AD.transpose().astype(int)
-    AD = AD.astype("str")
+    DP = DP.split(",")
+    DP = [float(num) for num in DP]
+    AB = AB.split(",")
+    AB = [float(num) for num in AB]
+    AD = [a * b for a, b in zip(DP, AB)]
+    AD = [int(num) for num in AD]
+    AD = ",".join([str(num) for num in AD])
 
     return AD
 
 
 def apply_alt_depth(report):
-    DP = report["depths(sample,dad,mom)"]
-    AB = report["allele_balance(sample,dad,mom)"]
+    report["alt_depth(sample,dad,mom)"] = ""
 
-    AD_column = alt_depth(DP, AB)
-
-    report["alt_depth(sample,dad,mom)"] = [",".join(row) for row in AD_column]
+    alt_dp = []
+    for index, row in report.iterrows():
+        dp = row["depths(sample,dad,mom)"]
+        ab = row["allele_balance(sample,dad,mom)"]
+        alt_dp.append(alt_depth(dp, ab))
+        
+    report["alt_depth(sample,dad,mom)"] = alt_dp
 
     return report
 
@@ -365,7 +367,7 @@ def add_c4r_exome_db(report):
 
 
 # parse refseq
-def parse_info(consequence):
+def parse_inf(consequence):
     consequence = consequence.split(";")
     refseq = [transcript for transcript in consequence if re.match("NM_[0-9]+", transcript.split("/")[2])]
     if len(refseq) == 0:
@@ -417,7 +419,7 @@ def parse_info(consequence):
 
 def apply_parse_consequence(report):
     report["info_parsed"] = report['gene_impact_transcript_Gene_CANONICAL_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT_DOMAINS'].apply(
-        lambda row: parse_info(row)
+        lambda row: parse_inf(row)
     )
     refseq = []
     np = []
