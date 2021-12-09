@@ -1,5 +1,6 @@
 import pytest
 from parse_report import parse_functions
+from slivar_reports.parse_report.parse_functions import parse_info
 
 
 def test_parse_spliceAI():
@@ -55,13 +56,6 @@ def test_ucsc_link():
     )
 
 
-def test_replacedelim():
-    assert parse_functions.replace_comma("1,1,0") == "1/1/0"
-    assert parse_functions.replace_comma("1,1,2") == "1/1/2"
-    assert parse_functions.replace_comma("0.298,0.265,0.298") == "0.298/0.265/0.298"
-    assert parse_functions.replace_comma("0.298,0.265,NA") == "0.298/0.265/NA"
-
-
 def test_add_c4r_exome_db():
     import pandas as pd
 
@@ -74,3 +68,19 @@ def test_add_c4r_exome_db():
         }
     )
     assert parse_functions.add_c4r_exome_db(test_record).equals(truth_record)
+
+
+cano_refseq = 'MORN1/missense_variant/ENST00000378529/ENSG00000116151//9/11/ENST00000378529.3:c.790G>A/ENSP00000367790.3:p.Val264Met/264/350/missense_variant/probably_damaging(0.973)/deleterious(0.01)/PANTHER:PTHR23084&PANTHER:PTHR23084:SF123;MORN1/missense_variant/ENST00000378531/ENSG00000116151/YES/9/14/ENST00000378531.3:c.790G>A/ENSP00000367792.3:p.Val264Met/264/497/missense_variant/probably_damaging(0.939)/deleterious(0.02)/PANTHER:PTHR23084&PANTHER:PTHR23084:SF123;MORN1/non_coding_transcript_exon_variant/ENST00000606372/ENSG00000116151//8/12/ENST00000606372.1:n.872G>A///non_coding_transcript_exon_variant///;MORN1/non_coding_transcript_exon_variant/ENST00000607342/ENSG00000116151//4/4/ENST00000607342.1:n.533G>A///non_coding_transcript_exon_variant///;RP4-740C4.7/downstream_gene_variant/ENST00000607858/ENSG00000272420/YES/////downstream_gene_variant///;MORN1/missense_variant/NM_001301060.2/79906//9/11/NM_001301060.2:c.790G>A/NP_001287989.1:p.Val264Met/264/350/missense_variant/probably_damaging(0.973)/deleterious(0.01)/;MORN1/missense_variant/NM_024848.3/79906/YES/9/14/NM_024848.3:c.790G>A/NP_079124.1:p.Val264Met/264/497/missense_variant/probably_damaging(0.939)/deleterious(0.02)/'
+refseq = 'ELMO1/5_prime_UTR_variant/ENST00000310758/ENSG00000155849/YES/1/22/ENST00000310758.4:c.-256_-253dup///5_prime_UTR_variant///;ELMO1/5_prime_UTR_variant/ENST00000445322/ENSG00000155849//1/5/ENST00000445322.1:c.-352_-349dup///5_prime_UTR_variant///;ELMO1/splice_region_variant&intron_variant/ENST00000448602/ENSG00000155849///ENST00000448602.1:c.-74+3_-74+6dup///splice_region_variant&intron_variant///;ELMO1/splice_region_variant&intron_variant/ENST00000453399/ENSG00000155849///ENST00000453399.1:c.-170+3_-170+6dup///splice_region_variant&intron_variant///;ELMO1/non_coding_transcript_exon_variant/ENST00000463390/ENSG00000155849//1/5/ENST00000463390.1:n.3_4insAAGT///non_coding_transcript_exon_variant///;ELMO1/splice_region_variant&intron_variant&non_coding_transcript_variant/ENST00000479447/ENSG00000155849///ENST00000479447.1:n.91+3_91+6dup///splice_region_variant&intron_variant&non_coding_transcript_variant///;ELMO1/splice_region_variant&intron_variant/NM_001206480.2/9844///NM_001206480.2:c.-74+3_-74+6dup///splice_region_variant&intron_variant///;ELMO1/5_prime_UTR_variant/NM_014800.11/9844//1/22/NM_014800.11:c.-256_-253dup///5_prime_UTR_variant///;/regulatory_region_variant/ENSR00000211027///////regulatory_region_variant///;/regulatory_region_variant/ENSR00001393429///////regulatory_region_variant///'
+norefseq = 'ARAP2/splice_region_variant&intron_variant&non_coding_transcript_variant/ENST00000503225/ENSG00000047365///ENST00000503225.1:n.1470-8del///splice_region_variant&intron_variant&non_coding_transcript_variant///'
+
+def test_parse_info():
+    assert(
+        parse_functions.parse_info(cano_refseq) == ['NM_024848.3:c.790G>A', 'NP_079124.1:p.Val264Met', 'missense_variant', '9_14', '264_497', 'Yes', '', 'probably_damaging(0.939)', 'deleterious(0.02)']
+    )
+    assert(
+        parse_functions.parse_info(refseq) == ['NM_001206480.2:c.-74+3_-74+6dup', '', 'splice_region_variant&intron_variant', '', 'NA', 'No', '', '', '']
+    )
+    assert(
+        parse_functions.parse_info(norefseq) == ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
+    )

@@ -23,6 +23,9 @@ def main(report):
     report = parse_functions.add_hgmd(report)
     report = parse_functions.add_c4r_exome_db(report)
     report = parse_functions.apply_parse_consequence(report)
+    report = parse_functions.apply_format_highest_impact(report)
+    report = parse_functions.apply_format_refseq(report)
+    
     report = report.rename(
         {
             "gene_impact_transcript_Gene_CANONICAL_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT_DOMAINS": "Info"
@@ -55,8 +58,8 @@ def main(report):
             "gene_description_1",
             "gene_description_2",
             "external_gene_name",
-            "highest_impact",
-            "info_parsed"
+            "info_parsed",
+            "np",
         ]
     )  # gene_description_1 is pLI_score
 
@@ -75,7 +78,6 @@ def main(report):
             "zygosity(sample,dad,mom)",
             "Gene",
             "genotype(sample,dad,mom)",
-            #"highest_impact",
             "Variation",
             "Info",
             "RefSeq_change",

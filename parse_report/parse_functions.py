@@ -370,7 +370,7 @@ def parse_info(consequence):
     refseq = [transcript for transcript in consequence if re.match("NM_[0-9]+", transcript.split("/")[2])]
     if len(refseq) == 0:
         result = ["NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA"]
-        # result = [refseq, variation, exon, protein, canonical, protein_domain, polyphen, sift]        
+        # result = [refseq_HGVC, HGVCp, exon, protein, canonical, protein_domain, polyphen, sift]        
             
     else:
         nm_yes = [transcript for transcript in refseq if re.match("YES", transcript.split("/")[4])]
@@ -381,16 +381,16 @@ def parse_info(consequence):
             exon = anno[5]
             canonical = "No"
             if len(exon) == 0:
-                result = [anno[2], anno[1], exon, "NA", canonical, anno[12], anno[10], anno[11]]
+                result = [anno[6], anno[7], exon, "NA", canonical, anno[12], anno[10], anno[11]]
                 
             
             else:
                 exon = f"{anno[5]}_{anno[6]}"
                 if anno[9] == "":
-                    result = [anno[2], anno[1], exon, "NA", canonical, anno[13], anno[11], anno[12]]
+                    result = [anno[7], anno[8], exon, "NA", canonical, anno[13], anno[11], anno[12]]
                 else:
                     protein = f"{anno[9]}_{anno[10]}"
-                    result = [anno[2], anno[1], exon, protein, canonical, anno[14], anno[12], anno[13]]
+                    result = [anno[7],  anno[8], exon, protein, canonical, anno[14], anno[12], anno[13]]
                 
               
 
@@ -401,27 +401,26 @@ def parse_info(consequence):
             canonical = "Yes"
 
             if len(exon) == 0:
-                result = [anno[2], anno[1], exon, "NA", canonical, anno[12], anno[10], anno[11]]
+                result = [anno[6], anno[7], exon, "NA", canonical, anno[12], anno[10], anno[11]]
                 
             
             else:
                 exon = f"{anno[5]}_{anno[6]}"
                 if anno[9] == "":
-                    result = [anno[2], anno[1], exon, "NA", canonical, anno[13], anno[11], anno[12]]
+                    result = [anno[7],  anno[8], exon, "NA", canonical, anno[13], anno[11], anno[12]]
                 else:
                     protein = f"{anno[9]}_{anno[10]}"
-                    result = [anno[2], anno[1], exon, protein, canonical, anno[14], anno[12], anno[13]]
+                    result = [anno[7],  anno[8], exon, protein, canonical, anno[14], anno[12], anno[13]]
                 
 
     return result
 
 def apply_parse_consequence(report):
-    # creates a column where each row is a dictionary
     report["info_parsed"] = report['gene_impact_transcript_Gene_CANONICAL_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT_DOMAINS'].apply(
         lambda row: parse_info(row)
     )
     refseq = []
-    variation = []
+    np = []
     exon = []
     protein = []
     canonical = []
@@ -433,16 +432,16 @@ def apply_parse_consequence(report):
         parsed = row['info_parsed'] # first row
        
         refseq.append(parsed[0]) # first element in the list
-        variation.append(parsed[1])
+        np.append(parsed[1])
         exon.append(parsed[2])
         protein.append(parsed[3])
         canonical.append(parsed[4])
         protein_domain.append(parsed[5])
         polyphen.append(parsed[6])
         sift.append(parsed[7])
-
+    
     report["RefSeq_change"] = refseq
-    report["Variation"] = variation
+    report["np"] = np
     report["Exon"] = exon
     report["AA_position"] = protein
     report["RefSeq_canonical"] = canonical
@@ -452,6 +451,25 @@ def apply_parse_consequence(report):
     report["Protein_domains"] = report["Protein_domains"].replace("", "NA")
     report["Polyphen_score"] = report["Polyphen_score"].replace("", "None")
     report["Sift_score"] = report["Sift_score"].replace("", "None")
+    
+    return report
+
+def get_protein_change(change):
+    if change == "":
+        protein_change = "NA"
+    elif change == "NA":
+        protein_change = "NA"
+    else:
+        protein_change = change.split(":")[1]
+    return protein_change
+
+def apply_format_refseq(report):
+    report["np"] = report["np"].apply(
+        lambda row: get_protein_change(row)
+    )
+
+    report["RefSeq_change"] = report["RefSeq_change"] + ":" + report["np"]
+    report["RefSeq_change"] = report["RefSeq_change"].replace(":NA", "NA:NA")
     return report
 
 ### FIX FORMATING IN THE REPORT
@@ -485,6 +503,18 @@ def vest3_score(report):
         lambda row: max((str.split(str(row), sep=",")))
     )
     report["Vest3_score"] = report["Vest3_score"].replace("nan", "None")
+    return report
+
+# format highes_impact column, renamed to "Variation"
+def format_highest_impact(impact):
+    rank_impact = impact.split("_")
+    impact = " ".join(rank_impact[1:])
+    return impact
+
+def apply_format_highest_impact(report):
+    report["Variation"] = report["highest_impact"].apply(
+        lambda row: format_highest_impact(row)
+    )
     return report
 
 
