@@ -24,7 +24,7 @@ def main(report):
     report = parse_functions.add_c4r_exome_db(report)
     report = parse_functions.apply_parse_consequence(report)
     report = parse_functions.apply_format_highest_impact(report)
-    report = parse_functions.apply_format_refseq(report)
+    
     
     report = report.rename(
         {
@@ -59,7 +59,6 @@ def main(report):
             "gene_description_2",
             "external_gene_name",
             "info_parsed",
-            "np",
         ]
     )  # gene_description_1 is pLI_score
 

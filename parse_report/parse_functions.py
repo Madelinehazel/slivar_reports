@@ -367,112 +367,179 @@ def add_c4r_exome_db(report):
 
 
 # parse refseq
+def get_anno_list(anno): # after split("/"), used for parse_inf() function
+    #gene = anno[0]
+    #nm = anno[2]
+    #when there is HGVC coding and protein information:
+    #canonical = anno[4]
+    #exon = anno[5:6]
+    #refseq_HGVC = anno[7]
+    #refseq_HGVCp = anno[8]
+    #protein = anno[9:10]
+    #protein_domain = anno[14]
+    #polyphen = anno[12]
+    #sift = anno[13]
+    
+    exon = anno[5]
+    if len(exon) == 0:
+        result = [anno[0], anno[2], anno[6], anno[7], exon, "NA", anno[12], anno[10], anno[11]]
+                
+            
+    else:
+        exon = f"{anno[5]}_{anno[6]}"
+        if anno[9] == "":
+            result = [anno[0], anno[2], anno[7],  anno[8], exon, "NA", anno[13], anno[11], anno[12]]
+        else:
+            protein = f"{anno[9]}_{anno[10]}"
+            result = [anno[0], anno[2], anno[7],  anno[8], exon, protein, anno[14], anno[12], anno[13]]
+    return result
+
 def parse_inf(consequence):
     consequence = consequence.split(";")
-    refseq = [transcript for transcript in consequence if re.match("NM_[0-9]+", transcript.split("/")[2])]
+    refseq = [transcript for transcript in consequence if re.findall("NM_[0-9]+", transcript.split("/")[2])]
+    
     if len(refseq) == 0:
-        result = ["NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA"]
-        # result = [refseq_HGVC, HGVCp, exon, protein, canonical, protein_domain, polyphen, sift]        
+        result = ["NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA"]
+        # result = [refseq_HGVC, HGVCp, exon, protein, protein_domain, polyphen, sift, canonical]        
             
     else:
         nm_yes = [transcript for transcript in refseq if re.match("YES", transcript.split("/")[4])]
-        if len(nm_yes) == 0:   # take the first NM_ transcript when there is no canonical
-
-            anno = refseq[0].split("/")
-
-            exon = anno[5]
+        if len(nm_yes) == 0:   
             canonical = "No"
-            if len(exon) == 0:
-                result = [anno[6], anno[7], exon, "NA", canonical, anno[12], anno[10], anno[11]]
-                
-            
-            else:
-                exon = f"{anno[5]}_{anno[6]}"
-                if anno[9] == "":
-                    result = [anno[7], anno[8], exon, "NA", canonical, anno[13], anno[11], anno[12]]
-                else:
-                    protein = f"{anno[9]}_{anno[10]}"
-                    result = [anno[7],  anno[8], exon, protein, canonical, anno[14], anno[12], anno[13]]
+            anno = refseq[0].split("/")    # take the first refseq transcript when there is no canonical
+            result = get_anno_list(anno)
+            result.append(canonical)
+            result = list(map(get_change, result))
+            coding = ":".join(result[1:3])
+            np = result[3]
+            result[0] = ":".join([result[0], coding, np]) # gene:NM_:coding_change:protein_change
                 
               
 
         else:    # there is NM_ and YES
-            anno = nm_yes[0].split("/")
-            
-            exon = anno[5]
             canonical = "Yes"
+            if len(nm_yes) == 1: # there is exactly one NM_ canonical
+                anno = nm_yes[0].split("/")
+                result = get_anno_list(anno)
+                result.append(canonical)
+                result = list(map(get_change, result))
+                coding = ":".join(result[1:3])
+                np = result[3]
+                result[0] = ":".join([result[0], coding, np]) # gene:NM_:coding_change:protein_change
 
-            if len(exon) == 0:
-                result = [anno[6], anno[7], exon, "NA", canonical, anno[12], anno[10], anno[11]]
                 
-            
-            else:
-                exon = f"{anno[5]}_{anno[6]}"
-                if anno[9] == "":
-                    result = [anno[7],  anno[8], exon, "NA", canonical, anno[13], anno[11], anno[12]]
-                else:
-                    protein = f"{anno[9]}_{anno[10]}"
-                    result = [anno[7],  anno[8], exon, protein, canonical, anno[14], anno[12], anno[13]]
+            elif len(nm_yes) > 1: # there are > 1 NM_ canonical, could be in different genes
+                parseresult=[]
+                for refcano in nm_yes:
+                    anno = refcano.split("/")
+                    parseresult.append(get_anno_list(anno)) # list of lists without cano yet
                 
+                parseresult_refseq = format_refseq(parseresult)
+                result = list((parseresult_refseq, parseresult[0][1:], canonical)) # use the first refseq cano to extract all other information
+                result = list(iterFlatten(result))
+                result[1:] = list(map(get_change, result[1:]))             
 
     return result
-
+    
 def apply_parse_consequence(report):
     report["info_parsed"] = report['gene_impact_transcript_Gene_CANONICAL_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT_DOMAINS'].apply(
         lambda row: parse_inf(row)
     )
-    refseq = []
+    refseq_change = []
+    nm = []
+    refseq_hgvc = []
     np = []
     exon = []
     protein = []
-    canonical = []
     protein_domain = []
     polyphen = []
     sift = []
+    canonical = []
 
     for index, row in report.iterrows():
         parsed = row['info_parsed'] # first row
        
-        refseq.append(parsed[0]) # first element in the list
-        np.append(parsed[1])
-        exon.append(parsed[2])
-        protein.append(parsed[3])
-        canonical.append(parsed[4])
-        protein_domain.append(parsed[5])
-        polyphen.append(parsed[6])
-        sift.append(parsed[7])
+        refseq_change.append(parsed[0])
+        nm.append(parsed[1])
+        refseq_hgvc.append(parsed[2]) # first element in the list
+        np.append(parsed[3])
+        exon.append(parsed[4])
+        protein.append(parsed[5])
+        protein_domain.append(parsed[6])
+        polyphen.append(parsed[7])
+        sift.append(parsed[8])
+        canonical.append(parsed[9])
     
-    report["RefSeq_change"] = refseq
-    report["np"] = np
+    
+    report["RefSeq_change"] = refseq_change
+    #report["nm"] = nm
+    #report["refseq_hgvc"] = refseq_hgvc
+    #report["np"] = np
     report["Exon"] = exon
     report["AA_position"] = protein
-    report["RefSeq_canonical"] = canonical
     report["Protein_domains"] = protein_domain
     report["Polyphen_score"] = polyphen
     report["Sift_score"] = sift
+    report["RefSeq_canonical"] = canonical
+
     report["Protein_domains"] = report["Protein_domains"].replace("", "NA")
     report["Polyphen_score"] = report["Polyphen_score"].replace("", "None")
     report["Sift_score"] = report["Sift_score"].replace("", "None")
     
     return report
 
-def get_protein_change(change):
-    if change == "":
-        protein_change = "NA"
-    elif change == "NA":
-        protein_change = "NA"
+### sub functions for multiple refseq_cano transcripts
+def format_refseq(parseresult):
+    refseq = []
+    for transcript in parseresult:
+        coding = get_hgvc_coding(transcript)
+        protein_change = get_hgvc_protein(transcript)
+        refseq.append([transcript[0], coding, protein_change])
+    
+    result = []
+    for trans in range(len(refseq)): 
+        result.append(
+        ":".join(refseq[trans])
+        )    
+    result = ",".join(result)
+
+    return result
+
+def get_hgvc_coding(annotranscript):
+    if annotranscript[2] == "":
+        return ":".join([annotranscript[1], "NA"]) # has NM_ only
     else:
-        protein_change = change.split(":")[1]
-    return protein_change
+        return annotranscript[2]
 
-def apply_format_refseq(report):
-    report["np"] = report["np"].apply(
-        lambda row: get_protein_change(row)
-    )
+def get_hgvc_protein(annotranscript):
+    if annotranscript[3] == "":
+        return "NA"
+    else:
+        return annotranscript[3].split(":")[1]
 
-    report["RefSeq_change"] = report["RefSeq_change"] + ":" + report["np"]
-    report["RefSeq_change"] = report["RefSeq_change"].replace(":NA", "NA:NA")
-    return report
+def iterFlatten(root):    # function to flatten lists of list
+    if isinstance(root, (list, tuple)):
+        for element in root:
+            for e in iterFlatten(element):
+                yield e
+    else:
+        yield root
+
+##################################
+def get_change(change):
+    if change == "":
+        result_change = "NA"
+    elif change == "NA":
+        result_change = "NA"
+    elif "NP_" in change:
+        result_change = change.split(":")[1]
+    elif "NM_" and ":c" in change:
+        result_change = change.split(":")[1]    
+    else:
+        result_change = change
+    return result_change
+
+
 
 ### FIX FORMATING IN THE REPORT
 
@@ -519,5 +586,5 @@ def apply_format_highest_impact(report):
     )
     return report
 
-
+# module load python/3.7.1
 # python3 generate_report.py -report ../report/report.txt
