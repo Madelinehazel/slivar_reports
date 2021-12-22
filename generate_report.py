@@ -22,6 +22,10 @@ def main(report):
     report = parse_functions.vest3_score(report)
     report = parse_functions.add_hgmd(report)
     report = parse_functions.add_c4r_exome_db(report)
+    report = parse_functions.apply_parse_consequence(report)
+    report = parse_functions.apply_format_highest_impact(report)
+    
+    
     report = report.rename(
         {
             "gene_impact_transcript_Gene_CANONICAL_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT_DOMAINS": "Info"
@@ -40,8 +44,6 @@ def main(report):
     report["Cadd_score"] = report["Cadd_score"].fillna("None")
     report["Revel_score"] = report["Revel_score"].fillna("None")
     report["Gerp_score"] = report["Gerp_score"].fillna("None")
-    report["Frequency_in_C4R"] = report["Frequency_in_C4R"].fillna("0")
-    report["Seen_in_C4R_samples"] = report["Seen_in_C4R_samples"].fillna("0")
     report["UCE_100bp"] = report["UCE_100bp"].fillna("0")
     report["UCE_100bp"] = report["UCE_100bp"].replace("UCE_100bp", "1")
     report["UCE_200bp"] = report["UCE_200bp"].fillna("0")
@@ -56,12 +58,13 @@ def main(report):
             "gene_description_1",
             "gene_description_2",
             "external_gene_name",
+            "info_parsed",
         ]
     )  # gene_description_1 is pLI_score
 
-    # gnomad_nhomalt uses gnomadv2.1.1, it's the updated value of gnomad_hom
+    # gnomad_nhomalt from slivar uses gnomadv2.1.1, it's the updated value of gnomad_hom
     # Burden(sample,dad,mom)
-    # add Ensembl_transcript_id, aa_position, exon, protein_domain etc
+    # add Ensembl_transcript_id and info columns
     # Number_of_callers; Old-multiallelic
     report = report[
         [
@@ -74,8 +77,10 @@ def main(report):
             "zygosity(sample,dad,mom)",
             "Gene",
             "genotype(sample,dad,mom)",
-            "highest_impact",
+            "Variation",
             "Info",
+            "RefSeq_change",
+            "RefSeq_canonical",
             "DP",
             "QUAL",
             "alt_depth(sample,dad,mom)",
@@ -98,6 +103,9 @@ def main(report):
             "gnomad_ac",
             "gnomad_hom",
             "gnomad_hom(v2.1.1)",
+            "AA_position",
+            "Exon",
+            "Protein_domains",
             "rs_ids",
             "Gnomad_oe_lof_score",
             "Gnomad_oe_mis_score",
@@ -107,6 +115,8 @@ def main(report):
             "Conserved_in_20_mammals",
             "spliceAI_impact",
             "spliceAI_score",
+            "Polyphen_score",
+            "Sift_score",
             "Cadd_score",
             "Vest3_score",
             "Revel_score",
@@ -127,7 +137,7 @@ def main(report):
         escapechar="'",
         doublequote=False,
     )
-    report.to_csv("test.csv", index=False, sep=",")
+    report.to_csv("test.csv", index=False, sep=",", encoding="utf-8")
 
 
 if __name__ == "__main__":
