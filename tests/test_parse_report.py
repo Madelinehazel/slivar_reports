@@ -80,3 +80,17 @@ def test_parse_inf():
     assert(
         parse_functions.parse_inf(norefseq) == ['NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA', 'NA']
     )
+
+def test_parse_enst():
+    assert(
+        parse_functions.parse_enst(cano_refseq) == "ENST00000378531"
+    )
+    assert(
+        parse_functions.parse_enst(multicano_refseq) == "ENST00000357182"
+    )
+    assert(
+        parse_functions.parse_enst(refseq) == "ENST00000310758"
+    )
+    assert(
+        parse_functions.parse_enst(norefseq) == "ENST00000503225"
+    )
