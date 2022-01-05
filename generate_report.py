@@ -22,6 +22,7 @@ def main(report):
     report = parse_functions.vest3_score(report)
     report = parse_functions.add_hgmd(report)
     report = parse_functions.add_c4r_exome_db(report)
+    report = parse_functions.apply_parse_enst(report)
     report = parse_functions.apply_parse_consequence(report)
     report = parse_functions.apply_format_highest_impact(report)
     
@@ -103,6 +104,7 @@ def main(report):
             "gnomad_ac",
             "gnomad_hom",
             "gnomad_hom(v2.1.1)",
+            "Ensembl_transcript_id",
             "AA_position",
             "Exon",
             "Protein_domains",

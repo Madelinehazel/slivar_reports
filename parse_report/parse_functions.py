@@ -364,7 +364,27 @@ def add_c4r_exome_db(report):
     )
     return report
 
+# parse Ensembl transcript
+def parse_enst(consequence):
+    consequence = consequence.split(";")
+    enst = [transcript for transcript in consequence if re.findall("ENST[0-9]+", transcript.split("/")[2])]
+    if len(enst) == 0:
+        result = ["NA"]
 
+    else:
+        enst_yes =  [transcript for transcript in enst if re.match("YES", transcript.split("/")[4])]
+        if len(enst_yes) == 0:
+            result = enst[0].split("/")[2]
+        elif len(enst_yes) >= 1:
+            result = enst_yes[0].split("/")[2]
+    
+    return result
+
+def apply_parse_enst(report):
+    report["Ensembl_transcript_id"] = report['gene_impact_transcript_Gene_CANONICAL_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT_DOMAINS'].apply(
+        lambda row: parse_enst(row)
+    )
+    return report
 
 # parse refseq
 def get_anno_list(anno): # after split("/"), used for parse_inf() function
