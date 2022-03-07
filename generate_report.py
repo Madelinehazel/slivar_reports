@@ -6,9 +6,9 @@ import os
 
 def main(report):
     report = parse_functions.apply_parse_spliceAI(report)
-    report = parse_functions.apply_zygosity(report)
+    # report = parse_functions.apply_zygosity(report)
     report = parse_functions.add_omim(report)
-    report = parse_functions.apply_alt_depth(report)
+    # report = parse_functions.apply_alt_depth(report)
     report = parse_functions.apply_ucsc_link(report)
     report = parse_functions.apply_gnomad_link(report)
     report = parse_functions.get_ensemble_gene(report)
@@ -21,12 +21,11 @@ def main(report):
     report = parse_functions.gnomad_replace(report)
     report = parse_functions.vest3_score(report)
     report = parse_functions.add_hgmd(report)
-    report = parse_functions.add_c4r_exome_db(report)
+    # report = parse_functions.add_c4r_exome_db(report)
     report = parse_functions.apply_parse_enst(report)
     report = parse_functions.apply_parse_consequence(report)
     report = parse_functions.apply_format_highest_impact(report)
-    
-    
+
     report = report.rename(
         {
             "gene_impact_transcript_Gene_CANONICAL_EXON_HGVSc_HGVSp_Protein_position_Consequence_PolyPhen_SIFT_DOMAINS": "Info"
@@ -39,11 +38,11 @@ def main(report):
     report = report.rename({"clinvar_pathogenic": "Clinvar"}, axis=1)
     report["Clinvar"] = report["Clinvar"].fillna("NA")
     report = report.rename({"gnomad_nhomalt": "gnomad_hom(v2.1.1)"}, axis=1)
-    report = report.rename({"phyloP20way_mammalian": "Conserved_in_20_mammals"}, axis=1)
-    report["Conserved_in_20_mammals"] = report["Conserved_in_20_mammals"].fillna("None")
+    report = report.rename({"phyloP30way_mammalian": "Conserved_in_30_mammals"}, axis=1)
+    report["Conserved_in_30_mammals"] = report["Conserved_in_30_mammals"].fillna("None")
     report = report.rename({"CADD_phred": "Cadd_score"}, axis=1)
     report["Cadd_score"] = report["Cadd_score"].fillna("None")
-    report["Revel_score"] = report["Revel_score"].fillna("None")
+    report["REVEL_score"] = report["REVEL_score"].fillna("None")
     report["Gerp_score"] = report["Gerp_score"].fillna("None")
     report["UCE_100bp"] = report["UCE_100bp"].fillna("0")
     report["UCE_100bp"] = report["UCE_100bp"].replace("UCE_100bp", "1")
@@ -55,7 +54,6 @@ def main(report):
             "spliceAI_parsed",
             "spliceai_score",
             "PAR_Gene_name",
-            "gnomad_popmax_af",
             "gene_description_1",
             "gene_description_2",
             "external_gene_name",
@@ -75,16 +73,16 @@ def main(report):
             "chr:pos:ref:alt",
             "UCSC_link",
             "GNOMAD_link",
-            "zygosity(sample,dad,mom)",
+            # "zygosity(sample,dad,mom)",
             "Gene",
             "genotype(sample,dad,mom)",
             "Variation",
             "Info",
             "RefSeq_change",
             "RefSeq_canonical",
-            "DP",
-            "QUAL",
-            "alt_depth(sample,dad,mom)",
+            #           "DP",
+            #           "QUAL",
+            # "alt_depth(sample,dad,mom)",
             "trio_coverage(sample,dad,mom)",
             "allele_balance(sample,dad,mom)",
             "Ensembl_gene_id",
@@ -93,8 +91,8 @@ def main(report):
             "omim_inheritance",
             "Orphanet",
             "Clinvar",
-            "Frequency_in_C4R",
-            "Seen_in_C4R_samples",
+            # "Frequency_in_C4R",
+            # "Seen_in_C4R_samples",
             "HGMD_id",
             "HGMD_gene",
             "HGMD_tag",
@@ -103,7 +101,7 @@ def main(report):
             "gnomad_af",
             "gnomad_ac",
             "gnomad_hom",
-            "gnomad_hom(v2.1.1)",
+            #           "gnomad_hom(v2.1.1)",
             "Ensembl_transcript_id",
             "AA_position",
             "Exon",
@@ -114,14 +112,14 @@ def main(report):
             "Exac_pli_score",
             "Exac_prec_score",
             "Exac_pnull_score",
-            "Conserved_in_20_mammals",
+            "Conserved_in_30_mammals",
             "spliceAI_impact",
             "spliceAI_score",
             "Polyphen_score",
             "Sift_score",
             "Cadd_score",
             "Vest3_score",
-            "Revel_score",
+            "REVEL_score",
             "Gerp_score",
             "Imprinting_status",
             "Imprinting_expressed_allele",
