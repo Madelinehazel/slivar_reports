@@ -140,12 +140,30 @@ OMIM_file = os.path.join(
 )
 OMIM = pd.read_csv(OMIM_file, sep="\t")
 OMIM = OMIM.rename(columns={"gene_name": "gene"})
+OMIM = OMIM.dropna(subset=['omim_phenotype'])
 
 
-def add_omim(report):
-    report = pd.merge(report, OMIM, how="left")
-    report["omim_phenotype"] = report["omim_phenotype"].fillna("NA")
-    report["omim_inheritance"] = report["omim_inheritance"].fillna("NA")
+def add_omim(col, gene):
+    if pd.isna(gene):
+        return "NA"
+    else:
+        omim = []
+        gene = gene.split(";")
+        for g in gene:
+            try:
+                omim.append(
+                    str(OMIM[OMIM["gene"] == g][col].values[0])
+                )
+            except IndexError:
+                pass
+        omim = ",".join(omim)
+        return omim
+
+
+def apply_add_omim(col, report):
+    report[col] = report["gene"].apply(lambda x: add_omim(col, x))
+    report[col] = report[col].fillna("NA")
+    report[col] = report[col].replace("", "NA")
     return report
 
 
