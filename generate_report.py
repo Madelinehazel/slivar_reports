@@ -7,7 +7,8 @@ import os
 def main(report):
     report = parse_functions.apply_parse_spliceAI(report)
     report = parse_functions.apply_zygosity(report)
-    report = parse_functions.add_omim(report)
+    report = parse_functions.apply_add_omim('omim_phenotype', report)
+    report = parse_functions.apply_add_omim('omim_inheritance', report)
     report = parse_functions.apply_alt_depth(report)
     report = parse_functions.apply_ucsc_link(report)
     report = parse_functions.apply_gnomad_link(report)
