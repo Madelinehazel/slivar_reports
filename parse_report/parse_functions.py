@@ -18,12 +18,17 @@ def merge_variants(report):
         tc.split(",")[0] for tc in report["trio_coverage(sample,dad,mom)"].values
     ]
 
+    report["zygosity(sample,dad,mom)"] = [
+        zy.split(",")[0] for zy in report["zygosity(sample,dad,mom)"].values
+    ]
+
     report_sub_cols = report[[col for col in report.columns if "sample" not in col]]
     report_agg = (
         report.groupby(["chr:pos:ref:alt"])
         .agg(
             {
                 "sample_id": ";".join,
+                "zygosity(sample,dad,mom)": ";".join,
                 "genotype(sample,dad,mom)": ";".join,
                 "allele_balance(sample,dad,mom)": ";".join,
                 "trio_coverage(sample,dad,mom)": ";".join,
@@ -34,20 +39,23 @@ def merge_variants(report):
     report_merge = report_sub_cols.merge(
         report_agg, how="outer", on="chr:pos:ref:alt"
     ).reset_index()
-    sample_names = list(set(report["sample_id"]))[0]
-    report_merge = report_merge.rename_columns(
+    sample_names = list(set(report_merge["sample_id"]))[0]
+    report_merge_renamed = report_merge.copy()
+    report_merge_renamed.rename(columns=
         {
+            "zygosity(sample,dad,mom)": f"zygosity({sample_names})",
             "genotype(sample,dad,mom)": f"genotype({sample_names})",
             "allele_balance(sample,dad,mom)": f"allele_balance({sample_names})",
             "trio_coverage(sample,dad,mom)": f"trio_coverage({sample_names})",
-        }
+        }, inplace=True
     )
-    return report_merge
+    report_merge_renamed = report_merge_renamed.drop_duplicates(subset=['chr:pos:ref:alt'])
+    return report_merge_renamed
 
 
 def zygosity(genotype):
     """converts numeric genotype to zygosity for ease of interpretation"""
-    zygosity_dict = {"0": "-", "1": "het", "2": "hom", "-1": "missing"}
+    zygosity_dict = {"0": "-", "1": "het", "2": "hom", "-1": "missing", ".": "NA"}
     zygosity = [zygosity_dict[gt] for gt in genotype.split(",")]
     return (",").join(zygosity)
 
@@ -200,7 +208,7 @@ def gnomad_link(info):
     pos = info[1]
     ref = info[2]
     alt = info[3]
-    return '=HYPERLINK("http://gnomad.broadinstitute.org/variant/{chr}-{pos}-{ref}-{alt}","GNOMAD_link")'.format(
+    return '=HYPERLINK("http://gnomad.broadinstitute.org/variant/{chr}-{pos}-{ref}-{alt}?dataset=gnomad_r3","GNOMAD_link")'.format(
         chr=chr, pos=pos, ref=ref, alt=alt
     )
 
@@ -219,7 +227,7 @@ def ucsc_link(info):
     pos = info[1]
     ref = info[2]
     alt = info[3]
-    return '=HYPERLINK("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&hgt.out3=10x&position={chr}:{pos}","UCSC_link")'.format(
+    return '=HYPERLINK("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&hgt.out3=10x&position={chr}:{pos}","UCSC_link")'.format(
         chr=chr, pos=pos
     )
 
@@ -678,7 +686,6 @@ def get_change(change):
         result_change = change
     return result_change
 
-
 ### FIX FORMATING IN THE REPORT
 
 # Column1 - Mode of inheritance
@@ -696,13 +703,10 @@ def get_change(change):
 # Column11 - gnomad_ac
 # Column12 - gnomad_hom
 # Column13 - gnomad_nhomalt
-def gnomad_replace(report):
-    report["gnomad_af_popmax"] = report["gnomad_af_popmax"].replace(".", 0)
-    report["gnomad_af"] = report["gnomad_af"].replace(".", 0)
-    report["gnomad_ac"] = report["gnomad_ac"].replace(".", 0)
-    report["gnomad_hom"] = report["gnomad_hom"].replace(".", 0)
-    return report
 
+def sub_period_with_zero(report, col):
+    report[col] = report[col].replace(".", 0)
+    return report
 
 # Vest3_score
 def vest3_score(report):
@@ -725,6 +729,47 @@ def apply_format_highest_impact(report):
         lambda row: format_highest_impact(row)
     )
     return report
+
+
+def filter_hpc_cmh(report):
+    report = report.astype({"hprc_af": float,  "cmh_af": float})
+    report = report[(report["hprc_af"] < 0.01) & (report["cmh_af"] < 0.01)]
+    return report
+
+
+def add_hpo(hpo, gene):
+    try:
+        gene = gene.split(";")
+    except AttributeError:
+        return "NA"
+    terms = []
+    for g in gene:
+        try:
+            term = str(hpo[hpo["Gene symbol"] == g]["Features"].values[0])
+            term = term.replace('; ',';').split(';')
+            term = list(set(term))
+            for t in term:
+                terms.append(t)
+        except IndexError:
+            pass
+    if len(terms) == 0:
+        return "NA"
+    else:
+        terms = ",".join(terms)
+        return terms
+
+
+def filter_linkage_region(variant, chr, start, end):
+    variant = variant.split(':')
+    variant_chr, variant_pos = variant[0], int(variant[1])
+    if variant_chr != chr:
+        return False
+    else:
+        if variant_pos >= start and variant_pos <= end:
+            return True
+        else:
+            return False
+
 
 
 # module load python/3.7.1
