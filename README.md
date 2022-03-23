@@ -12,7 +12,7 @@ Python3
 ## Usage
 
 ```
-python3 generate_report.py -report [slivar-generated tsv]
+python3 generate_report.py -report [slivar-generated tsv] -output [output csv]
 ```
 
 

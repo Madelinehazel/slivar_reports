@@ -140,7 +140,7 @@ def main(report):
         escapechar="'",
         doublequote=False,
     )
-    report.to_csv("test.csv", index=False, sep=",", encoding="utf-8")
+    report.to_csv(args.output, index=False, sep=",", encoding="utf-8")
 
 
 if __name__ == "__main__":
@@ -148,6 +148,7 @@ if __name__ == "__main__":
         description="Parses tsv output from slivar into C4R report"
     )
     parser.add_argument("-report", type=str, help="input report text file")
+    parser.add_argument("-output", type=str, help="output report csv file")
 
     args = parser.parse_args()
 
