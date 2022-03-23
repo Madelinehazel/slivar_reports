@@ -200,7 +200,7 @@ def get_ensemble_gene(report):
     ]
     # ensg = re.findall("ENSG[0-9]+", consequences)[0]
     report["Ensembl_gene_id"] = [
-        re.findall("ENSG[0-9]+", consequences[row])[0]
+        'None' if re.findall("ENSG[0-9]+", consequences[row])==[] else re.findall("ENSG[0-9]+", consequences[row])[0]
         for row in range(len(consequences))
     ]
 
