@@ -131,7 +131,7 @@ def main(report):
             "UCE_200bp",
         ]
     ]
-
+    report.sort_values(by = "#mode", ascending = True)
     report.to_csv(
         "test.txt",
         index=False,
